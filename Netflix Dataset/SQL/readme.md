@@ -54,3 +54,25 @@ LIMIT 1;
 SELECT COUNT(*) AS titles_with_love
 FROM netflix_dataset_analysis
 WHERE description ILIKE '%love%';
+
+-- 8. Shows released after 2020 with rating 'TV-MA'
+SELECT show_id, title, release_date, rating
+FROM netflix_dataset_analysis
+WHERE release_date > '2020-01-01' AND rating = 'TV-MA';
+
+-- 9. Rank movies by duration within each rating (window function)
+SELECT title, rating,
+       CAST(SPLIT_PART(duration, ' ', 1) AS INTEGER) AS minutes,
+       RANK() OVER (PARTITION BY rating ORDER BY CAST(SPLIT_PART(duration, ' ', 1) AS INTEGER) DESC) AS rank_in_rating
+FROM netflix_dataset_analysis
+WHERE category = 'Movie';
+
+-- 10. Average movie duration per release year
+SELECT EXTRACT(YEAR FROM release_date) AS release_year,
+       AVG(CAST(SPLIT_PART(duration, ' ', 1) AS INTEGER)) AS avg_minutes
+FROM netflix_dataset_analysis
+WHERE category = 'Movie'
+  AND duration ILIKE '%min%'
+  AND release_date IS NOT NULL
+GROUP BY release_year
+ORDER BY release_year;
